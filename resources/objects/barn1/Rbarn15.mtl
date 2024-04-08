@@ -12,8 +12,8 @@ newmtl Rbarn15
 	Kd 0.5882 0.5059 0.5059
 	Ks 0.0000 0.0000 0.0000
 	Ke 0.0000 0.0000 0.0000
-	map_Ka C:\Users\MX\Desktop\home\Rb\Rbarn15_Albedo.png
-	map_Kd C:\Users\MX\Desktop\home\Rb\Rbarn15_Albedo.png
-	map_Ks C:\Users\MX\Desktop\home\Rb\Rbarn15_Reflectivity.png
-	map_bump C:\Users\MX\Desktop\home\Rb\Rbarn15_Normal.png
-	bump C:\Users\MX\Desktop\home\Rb\Rbarn15_Normal.png
+	map_Ka Rbarn15_Albedo.png
+	map_Kd Rbarn15_Albedo.png
+	map_Ks Rbarn15_Reflectivity.png
+	map_bump Rbarn15_Normal.png
+	bump Rbarn15_Normal.png
