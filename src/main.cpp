@@ -207,9 +207,9 @@ int main() {
         ourShader.use();
         pointLight.position = glm::vec3(4.0 * cos(currentFrame), 4.0f, 4.0 * sin(currentFrame));
         ourShader.setVec3("pointLight[0].position", pointLight.position);
-        ourShader.setVec3("pointLight[0].ambient", glm::vec3(50.0f));
-        ourShader.setVec3("pointLight[0].diffuse", pointLight.diffuse);
-        ourShader.setVec3("pointLight[0].specular", pointLight.specular);
+        ourShader.setVec3("pointLight[0].ambient", glm::vec3(0.0f));
+        ourShader.setVec3("pointLight[0].diffuse", glm::vec3(0.0f));
+        ourShader.setVec3("pointLight[0].specular", glm::vec3(0.0f));
         ourShader.setFloat("pointLight[0].constant", pointLight.constant);
         ourShader.setFloat("pointLight[0].linear", pointLight.linear);
         ourShader.setFloat("pointLight[0].quadratic", pointLight.quadratic);
@@ -226,6 +226,21 @@ int main() {
         ourShader.setFloat("pointLight[1].quadratic", pointLight.quadratic);
         ourShader.setVec3("viewPosition", programState->camera.Position);
         ourShader.setFloat("material.shininess", 32.0f);
+
+
+      ourShader.setVec3("spotLight.position", glm::vec3(1.04f,59.44f, 0.68f));
+       ourShader.setVec3("spotLight.direction", glm::vec3(0.27f,-0.92f, 0.26f));
+        //ourShader.setVec3("spotLight.position", programState->camera.Position);
+       //  ourShader.setVec3("spotLight.direction", programState->camera.Front);
+        ourShader.setVec3("spotLight.ambient", 10.0f, 10.0f, 10.0f);
+        ourShader.setVec3("spotLight.diffuse", 50.0f, 50.0f, 50.0f);
+        ourShader.setVec3("spotLight.specular", 10.0f, 10.0f, 10.0f);
+        ourShader.setFloat("spotLight.constant", 1.0f);
+        ourShader.setFloat("spotLight.linear", 0.09);
+        ourShader.setFloat("spotLight.quadratic", 0.032);
+        ourShader.setFloat("spotLight.cutOff", glm::cos(glm::radians(30.5f)));
+        ourShader.setFloat("spotLight.outerCutOff", glm::cos(glm::radians(45.0f)));
+
         // view/projection transformations
         glm::mat4 projection = glm::perspective(glm::radians(programState->camera.Zoom),
                                                 (float) SCR_WIDTH / (float) SCR_HEIGHT, 0.1f, 1000.0f);
@@ -253,7 +268,9 @@ int main() {
         modelufo=glm::rotate(modelufo,(float)glfwGetTime(),glm::vec3(0,0,1));
 
 
-        modelufo = glm::translate(modelufo,glm::vec3(0.0f,0.0f, 600.0f+50*(sin(glfwGetTime()))));
+      //  modelufo = glm::translate(modelufo,glm::vec3(0.0f,0.0f, 600.0f+50*(sin(glfwGetTime()))));
+      modelufo = glm::translate(modelufo,glm::vec3(0.0f,0.0f, 600.0f));
+
         ourShader.setMat4("model", modelufo);
         ufo.Draw(ourShader);
 
