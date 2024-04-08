@@ -126,7 +126,7 @@ int main() {
 
     // build and compile shaders
     // -------------------------
-   // Shader lightingShader("resources/shaders/5.4.light_casters.vs", "resources/shaders/5.4.light_casters.fs");
+   // Shader ourShader("resources/shaders/5.4.light_casters.vs", "resources/shaders/5.4.light_casters.fs");
     Shader ourShader("resources/shaders/2.model_lighting.vs", "resources/shaders/2.model_lighting.fs");
 
     // load models
@@ -181,36 +181,49 @@ int main() {
 //       POKUSAJ JADNE LAMPE
 //
 //
-//        lightingShader.use();
-//        lightingShader.setVec3("light.position", programState->camera.Position);
-//      //  lightingShader.setVec3("light.position", glm::vec3(0.0f,0.0f, 600.0f+50*(sin(glfwGetTime()))));
-//        //lightingShader.setVec3("light.direction", glm::vec3(0.0f,0.0f, 1.0f));
-//        lightingShader.setVec3("light.direction", programState->camera.Front);
-//        lightingShader.setFloat("light.cutOff", glm::cos(glm::radians(12.5f)));
-//        lightingShader.setFloat("light.outerCutOff", glm::cos(glm::radians(17.5f)));
-//        lightingShader.setVec3("viewPos", programState->camera.Position);
+//        ourShader.use();
+//        ourShader.setVec3("light.position", programState->camera.Position);
+//      //  ourShader.setVec3("light.position", glm::vec3(0.0f,0.0f, 600.0f+50*(sin(glfwGetTime()))));
+//        //ourShader.setVec3("light.direction", glm::vec3(0.0f,0.0f, 1.0f));
+//        ourShader.setVec3("light.direction", programState->camera.Front);
+//        ourShader.setFloat("light.cutOff", glm::cos(glm::radians(12.5f)));
+//        ourShader.setFloat("light.outerCutOff", glm::cos(glm::radians(17.5f)));
+//        ourShader.setVec3("viewPos", programState->camera.Position);
 //
-//        lightingShader.setVec3("light.ambient", 0.1f, 0.1f, 0.1f);
+//        ourShader.setVec3("light.ambient", 0.1f, 0.1f, 0.1f);
 //        // we configure the diffuse intensity slightly higher; the right lighting conditions differ with each lighting method and environment.
 //        // each environment and lighting type requires some tweaking to get the best out of your environment.
-//        lightingShader.setVec3("light.diffuse", 0.8f, 0.8f, 0.8f);
-//        lightingShader.setVec3("light.specular", 1.0f, 1.0f, 1.0f);
-//        lightingShader.setFloat("light.constant", 1.0f);
-//        lightingShader.setFloat("light.linear", 0.09f);
-//        lightingShader.setFloat("light.quadratic", 0.032f);
-//        lightingShader.setFloat("material.shininess", 32.0f);
+//        ourShader.setVec3("light.diffuse", 0.8f, 0.8f, 0.8f);
+//        ourShader.setVec3("light.specular", 1.0f, 1.0f, 1.0f);
+//        ourShader.setFloat("light.constant", 1.0f);
+//        ourShader.setFloat("light.linear", 0.09f);
+//        ourShader.setFloat("light.quadratic", 0.032f);
+//        ourShader.setFloat("material.shininess", 32.0f);
+
 
 
 
 
         ourShader.use();
-        ourShader.setVec3("pointLight.position", glm::vec3(-50.0f, 150.0f, -200.0f));
-        ourShader.setVec3("pointLight.ambient", pointLight.ambient);
-        ourShader.setVec3("pointLight.diffuse", pointLight.diffuse);
-        ourShader.setVec3("pointLight.specular", pointLight.specular);
-        ourShader.setFloat("pointLight.constant", pointLight.constant);
-        ourShader.setFloat("pointLight.linear", pointLight.linear);
-        ourShader.setFloat("pointLight.quadratic", pointLight.quadratic);
+        pointLight.position = glm::vec3(4.0 * cos(currentFrame), 4.0f, 4.0 * sin(currentFrame));
+        ourShader.setVec3("pointLight[0].position", pointLight.position);
+        ourShader.setVec3("pointLight[0].ambient", glm::vec3(50.0f));
+        ourShader.setVec3("pointLight[0].diffuse", pointLight.diffuse);
+        ourShader.setVec3("pointLight[0].specular", pointLight.specular);
+        ourShader.setFloat("pointLight[0].constant", pointLight.constant);
+        ourShader.setFloat("pointLight[0].linear", pointLight.linear);
+        ourShader.setFloat("pointLight[0].quadratic", pointLight.quadratic);
+        ourShader.setVec3("viewPosition", programState->camera.Position);
+        ourShader.setFloat("material.shininess", 32.0f);
+
+        pointLight.position = glm::vec3(4.0 * cos(currentFrame), 4.0f, 4.0 * sin(currentFrame));
+        ourShader.setVec3("pointLight[1].position", glm::vec3(-50.0f, 150.0f, -200.0f));
+        ourShader.setVec3("pointLight[1].ambient", glm::vec3(20.0f));
+        ourShader.setVec3("pointLight[1].diffuse", pointLight.diffuse);
+        ourShader.setVec3("pointLight[1].specular", pointLight.specular);
+        ourShader.setFloat("pointLight[1].constant", pointLight.constant);
+        ourShader.setFloat("pointLight[1].linear", pointLight.linear);
+        ourShader.setFloat("pointLight[1].quadratic", pointLight.quadratic);
         ourShader.setVec3("viewPosition", programState->camera.Position);
         ourShader.setFloat("material.shininess", 32.0f);
         // view/projection transformations
@@ -219,6 +232,8 @@ int main() {
         glm::mat4 view = programState->camera.GetViewMatrix();
         ourShader.setMat4("projection", projection);
         ourShader.setMat4("view", view);
+
+
         glEnable(GL_CULL_FACE);
         // platforma
         glm::mat4 modelplatforma = glm::mat4(1.0f);
