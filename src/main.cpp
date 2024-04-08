@@ -126,6 +126,7 @@ int main() {
 
     // build and compile shaders
     // -------------------------
+   // Shader lightingShader("resources/shaders/5.4.light_casters.vs", "resources/shaders/5.4.light_casters.fs");
     Shader ourShader("resources/shaders/2.model_lighting.vs", "resources/shaders/2.model_lighting.fs");
 
     // load models
@@ -139,6 +140,9 @@ int main() {
     krava.SetShaderTextureNamePrefix("material.");
     Model barn ("resources/objects/barn1/Rbarn15.obj");
     barn.SetShaderTextureNamePrefix("material.");
+
+    Model mesec ("resources/objects/moon/moon.obj");
+    mesec.SetShaderTextureNamePrefix("material.");
 
     PointLight& pointLight = programState->pointLight;
     pointLight.position = glm::vec3(20.0f);
@@ -171,9 +175,36 @@ int main() {
         glClearColor(programState->clearColor.r, programState->clearColor.g, programState->clearColor.b, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+
+
         // don't forget to enable shader before setting uniforms
+//       POKUSAJ JADNE LAMPE
+//
+//
+//        lightingShader.use();
+//        lightingShader.setVec3("light.position", programState->camera.Position);
+//      //  lightingShader.setVec3("light.position", glm::vec3(0.0f,0.0f, 600.0f+50*(sin(glfwGetTime()))));
+//        //lightingShader.setVec3("light.direction", glm::vec3(0.0f,0.0f, 1.0f));
+//        lightingShader.setVec3("light.direction", programState->camera.Front);
+//        lightingShader.setFloat("light.cutOff", glm::cos(glm::radians(12.5f)));
+//        lightingShader.setFloat("light.outerCutOff", glm::cos(glm::radians(17.5f)));
+//        lightingShader.setVec3("viewPos", programState->camera.Position);
+//
+//        lightingShader.setVec3("light.ambient", 0.1f, 0.1f, 0.1f);
+//        // we configure the diffuse intensity slightly higher; the right lighting conditions differ with each lighting method and environment.
+//        // each environment and lighting type requires some tweaking to get the best out of your environment.
+//        lightingShader.setVec3("light.diffuse", 0.8f, 0.8f, 0.8f);
+//        lightingShader.setVec3("light.specular", 1.0f, 1.0f, 1.0f);
+//        lightingShader.setFloat("light.constant", 1.0f);
+//        lightingShader.setFloat("light.linear", 0.09f);
+//        lightingShader.setFloat("light.quadratic", 0.032f);
+//        lightingShader.setFloat("material.shininess", 32.0f);
+
+
+
+
         ourShader.use();
-        ourShader.setVec3("pointLight.position", pointLight.position);
+        ourShader.setVec3("pointLight.position", glm::vec3(-50.0f, 150.0f, -200.0f));
         ourShader.setVec3("pointLight.ambient", pointLight.ambient);
         ourShader.setVec3("pointLight.diffuse", pointLight.diffuse);
         ourShader.setVec3("pointLight.specular", pointLight.specular);
@@ -236,6 +267,20 @@ int main() {
         //modelbarn=glm::rotate(modelbarn,(float)glfwGetTime(),glm::vec3(0,0,1));
         ourShader.setMat4("model", modelbarn);
         barn.Draw(ourShader);
+
+        //mesec
+        glm::mat4 modelmesec = glm::mat4(1.0f);
+
+        modelmesec = glm::translate(modelmesec,glm::vec3(-50.0f, 150.0f, -200.0f));
+        modelmesec = glm::scale(modelmesec, glm::vec3(25.0f));
+       // modelbarn=glm::rotate(modelbarn,glm::radians(90.0f),glm::vec3(0,1,0));
+        //modelbarn=glm::rotate(modelbarn,(float)glfwGetTime(),glm::vec3(0,0,1));
+        ourShader.setMat4("model", modelmesec);
+        mesec.Draw(ourShader);
+
+
+
+
         glDisable(GL_CULL_FACE);
 
         if (programState->ImGuiEnabled)
