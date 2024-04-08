@@ -60,7 +60,7 @@ struct ProgramState {
     float backpackScale = 0.05f;
     PointLight pointLight;
     ProgramState()
-            : camera(glm::vec3(0.0f, 0.0f, 3.0f)) {}
+            : camera(glm::vec3(139.0f, 36.0f, 28.0f)) {}
 };
 
 ProgramState *programState;
@@ -130,9 +130,9 @@ int main() {
 
     // load models
     // -----------
-   Model ourModel("resources/objects/10438_Circular_Grass_Patch_v1_L3.123c72c0e679-bb4b-4162-b0f0-a70f7575d7d8/10438_Circular_Grass_Patch_v1_iterations-2.obj");
+   Model platforma("resources/objects/10438_Circular_Grass_Patch_v1_L3.123c72c0e679-bb4b-4162-b0f0-a70f7575d7d8/10438_Circular_Grass_Patch_v1_iterations-2.obj");
    // Model ourModel("resources/objects/UFO_Saucer_v1_L2.123c50bd261a-1751-44c1-b973-f0dd9e11cecd/13884_UFO_Saucer_v1_l2.obj");
-   ourModel.SetShaderTextureNamePrefix("material.");
+    platforma.SetShaderTextureNamePrefix("material.");
    Model ufo ("resources/objects/UFO_Saucer_v1_L2.123c50bd261a-1751-44c1-b973-f0dd9e11cecd/13884_UFO_Saucer_v1_l2.obj");
     ufo.SetShaderTextureNamePrefix("material.");
     Model krava ("resources/objects/cow/cowTM08New00RTime02.obj");
@@ -188,55 +188,55 @@ int main() {
         glm::mat4 view = programState->camera.GetViewMatrix();
         ourShader.setMat4("projection", projection);
         ourShader.setMat4("view", view);
+        glEnable(GL_CULL_FACE);
+        // platforma
+        glm::mat4 modelplatforma = glm::mat4(1.0f);
 
-        // render the loaded model
-        glm::mat4 model = glm::mat4(1.0f);
+        modelplatforma = glm::scale(modelplatforma, glm::vec3(1.0f));
+        modelplatforma=glm::rotate(modelplatforma,glm::radians(270.0f),glm::vec3(1,0,0));
 
-        model = glm::scale(model, glm::vec3(0.5f));    // it's a bit too big for our scene, so scale it down
-        model=glm::rotate(model,glm::radians(270.0f),glm::vec3(1,0,0));
-
-        model = glm::translate(model,
-                               glm::vec3(0.0f)); // translate it down so it's at the center of the scene
-        ourShader.setMat4("model", model);
-        ourModel.Draw(ourShader);
+        modelplatforma = glm::translate(modelplatforma,glm::vec3(0.0f));
+        ourShader.setMat4("model", modelplatforma);
+        platforma.Draw(ourShader);
 
     //ufo
         glm::mat4 modelufo = glm::mat4(1.0f);
 
-        modelufo = glm::scale(modelufo, glm::vec3(0.1));    // it's a bit too big for our scene, so scale it down
+        modelufo = glm::scale(modelufo, glm::vec3(0.1));
         modelufo=glm::rotate(modelufo,glm::radians(270.0f),glm::vec3(1,0,0));
         modelufo=glm::rotate(modelufo,(float)glfwGetTime(),glm::vec3(0,0,1));
 
 
-        modelufo = glm::translate(modelufo,
-                                  glm::vec3(0.0f,0.0f, 500.0f+50*(sin(glfwGetTime())))); // translate it down so it's at the center of the scene
+        modelufo = glm::translate(modelufo,glm::vec3(0.0f,0.0f, 600.0f+50*(sin(glfwGetTime()))));
         ourShader.setMat4("model", modelufo);
-//        ufo.Draw(ourShader);
+        ufo.Draw(ourShader);
+
         //krava
 
         glm::mat4 modelkrava = glm::mat4(1.0f);
 
-        modelkrava = glm::scale(modelkrava, glm::vec3(1.0f));    // it's a bit too big for our scene, so scale it down
+        modelkrava = glm::scale(modelkrava, glm::vec3(1.0f));
 
-        modelkrava = glm::translate(modelkrava,glm::vec3(-5.0f,25.0f+5*(sin(glfwGetTime()/2)), -0.0f));
-       modelkrava=glm::rotate(modelkrava,(float)glfwGetTime(),glm::vec3(0,1,0));
+        modelkrava = glm::translate(modelkrava,glm::vec3(0.0f,25.0f+5*(sin(glfwGetTime()/2)), 0.0f));
+        modelkrava=glm::rotate(modelkrava,(float)glfwGetTime(),glm::vec3(0,1,0));
         modelkrava=glm::rotate(modelkrava,(float)glfwGetTime(),glm::vec3(0,0,1));
         modelkrava=glm::rotate(modelkrava,(float)glfwGetTime(),glm::vec3(1,0,0));
 
-      // translate it down so it's at the center of the scene
+
         ourShader.setMat4("model", modelkrava);
-//        krava.Draw(ourShader);
+        krava.Draw(ourShader);
 
         //barn2
 
         glm::mat4 modelbarn = glm::mat4(1.0f);
 
-        modelbarn = glm::translate(modelbarn,glm::vec3(0.0f)); // translate it down so it's at the center of the scene
-        modelbarn = glm::scale(modelbarn, glm::vec3(0.05f));    // it's a bit too big for our scene, so scale it down
-        // modelbarn=glm::rotate(modelbarn,(float)glfwGetTime(),glm::vec3(0,1,0));
+        modelbarn = glm::translate(modelbarn,glm::vec3(0.0f,9.0f,50.0f));
+        modelbarn = glm::scale(modelbarn, glm::vec3(0.04f));
+        modelbarn=glm::rotate(modelbarn,glm::radians(90.0f),glm::vec3(0,1,0));
         //modelbarn=glm::rotate(modelbarn,(float)glfwGetTime(),glm::vec3(0,0,1));
         ourShader.setMat4("model", modelbarn);
         barn.Draw(ourShader);
+        glDisable(GL_CULL_FACE);
 
         if (programState->ImGuiEnabled)
             DrawImGui(programState);
