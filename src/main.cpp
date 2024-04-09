@@ -191,7 +191,7 @@ int main() {
     ufo.SetShaderTextureNamePrefix("material.");
     Model krava ("resources/objects/cow/cowTM08New00RTime02.obj");
     krava.SetShaderTextureNamePrefix("material.");
-    Model barn ("resources/objects/barn1/Rbarn15.obj");
+    Model barn ("resources/objects/Rbarn15_TexturesAB/textures/Rbarn15.obj");
     barn.SetShaderTextureNamePrefix("material.");
 
     Model mesec ("resources/objects/moon/moon.obj");
