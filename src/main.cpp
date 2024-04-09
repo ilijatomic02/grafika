@@ -16,6 +16,7 @@
 
 #include <iostream>
 
+
 void framebuffer_size_callback(GLFWwindow *window, int width, int height);
 
 void mouse_callback(GLFWwindow *window, double xpos, double ypos);
@@ -29,6 +30,8 @@ void key_callback(GLFWwindow *window, int key, int scancode, int action, int mod
 // settings
 const unsigned int SCR_WIDTH = 800;
 const unsigned int SCR_HEIGHT = 600;
+unsigned  int width1;
+unsigned  int height1;
 
 // camera
 
@@ -228,18 +231,27 @@ int main() {
         ourShader.setFloat("material.shininess", 32.0f);
 
 
-      ourShader.setVec3("spotLight.position", glm::vec3(1.04f,59.44f, 0.68f));
-       ourShader.setVec3("spotLight.direction", glm::vec3(0.27f,-0.92f, 0.26f));
+      ourShader.setVec3("spotLight.position", glm::vec3(0.0f,61.781075f, 0.0f));
+       ourShader.setVec3("spotLight.direction", glm::vec3(0.0f,-1.0f, 0.0f));
         //ourShader.setVec3("spotLight.position", programState->camera.Position);
        //  ourShader.setVec3("spotLight.direction", programState->camera.Front);
-        ourShader.setVec3("spotLight.ambient", 10.0f, 10.0f, 10.0f);
-        ourShader.setVec3("spotLight.diffuse", 50.0f, 50.0f, 50.0f);
-        ourShader.setVec3("spotLight.specular", 10.0f, 10.0f, 10.0f);
+        ourShader.setVec3("spotLight.ambient", 0.0f, 10.0f, 0.0f);
+        ourShader.setVec3("spotLight.diffuse", 0.0f, 50.0f, 0.0f);
+        ourShader.setVec3("spotLight.specular", 0.0f, 10.0f, 0.0f);
         ourShader.setFloat("spotLight.constant", 1.0f);
         ourShader.setFloat("spotLight.linear", 0.09);
         ourShader.setFloat("spotLight.quadratic", 0.032);
-        ourShader.setFloat("spotLight.cutOff", glm::cos(glm::radians(30.5f)));
-        ourShader.setFloat("spotLight.outerCutOff", glm::cos(glm::radians(45.0f)));
+        ourShader.setFloat("spotLight.cutOff", glm::cos(glm::radians(20.5f)));
+        ourShader.setFloat("spotLight.outerCutOff", glm::cos(glm::radians(30.0f)));
+
+        //dir lajt
+
+        ourShader.setVec3("dirLight.direction", -0.2f, -1.0f, -0.3f);
+        ourShader.setVec3("dirLight.ambient", 0.2f, 0.2f, 0.2f);
+        ourShader.setVec3("dirLight.diffuse", 0.4f, 0.4f, 0.4f);
+        ourShader.setVec3("dirLight.specular", 0.5f, 0.5f, 0.5f);
+
+
 
         // view/projection transformations
         glm::mat4 projection = glm::perspective(glm::radians(programState->camera.Zoom),
@@ -355,6 +367,8 @@ void processInput(GLFWwindow *window) {
 void framebuffer_size_callback(GLFWwindow *window, int width, int height) {
     // make sure the viewport matches the new window dimensions; note that width and
     // height will be significantly larger than specified on retina displays.
+    width1=width;
+    height1=height;
     glViewport(0, 0, width, height);
 }
 
