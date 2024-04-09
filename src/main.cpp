@@ -69,6 +69,8 @@ struct ProgramState {
 ProgramState *programState;
 
 void DrawImGui(ProgramState *programState);
+unsigned int loadTexture(char const * path);
+
 
 int main() {
     // glfw: initialize and configure
@@ -131,6 +133,54 @@ int main() {
     // -------------------------
    // Shader ourShader("resources/shaders/5.4.light_casters.vs", "resources/shaders/5.4.light_casters.fs");
     Shader ourShader("resources/shaders/2.model_lighting.vs", "resources/shaders/2.model_lighting.fs");
+    Shader shader ("resources/shaders/3.1.blending.vs","resources/shaders/3.1.blending.fs");
+
+
+    float transparentVertices[] = {
+            // positions         // texture Coords (swapped y coordinates because texture is flipped upside down)
+            0.0f,  0.5f,  0.0f,  0.0f,  0.0f,
+            0.0f, -0.5f,  0.0f,  0.0f,  1.0f,
+            1.0f, -0.5f,  0.0f,  1.0f,  1.0f,
+
+            0.0f,  0.5f,  0.0f,  0.0f,  0.0f,
+            1.0f, -0.5f,  0.0f,  1.0f,  1.0f,
+            1.0f,  0.5f,  0.0f,  1.0f,  0.0f
+    };
+    vector<glm::vec3> vegetation
+            {
+//                    glm::vec3(25.0f, 15.0f, -30.5f),
+//                    glm::vec3(15.0f, 15.0f, -30.5f),
+//                    glm::vec3(5.0f, 15.0f, -30.5f),
+//                    glm::vec3(-5.0f, 15.0f, -30.5f),
+//                    glm::vec3(25.0f, 15.0f, -40.5f)
+//                    glm::vec3(25.0f, 11.0f, -32.5f),
+//                    glm::vec3(25.0f, 11.0f, -32.5f),
+//                    glm::vec3(25.0f, 11.0f, -32.5f),
+//                    glm::vec3(25.0f, 11.0f, -32.5f)
+            };
+    for(int i=0;i<8;i++){
+        for(int j=0;j<5;j++){
+          //  vegetation.push_back(glm::vec3(25.0f-i*7,15.0f,-8.5f-10*j));
+            vegetation.push_back(glm::vec3(32.0f-i*7,15.0f,84.5f+10*j));
+
+        }
+    }
+    unsigned int transparentVAO, transparentVBO;
+    glGenVertexArrays(1, &transparentVAO);
+    glGenBuffers(1, &transparentVBO);
+    glBindVertexArray(transparentVAO);
+    glBindBuffer(GL_ARRAY_BUFFER, transparentVBO);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(transparentVertices), transparentVertices, GL_STATIC_DRAW);
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
+    glEnableVertexAttribArray(1);
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
+    glBindVertexArray(0);
+
+    //unsigned int transparentTexture = loadTexture(FileSystem::getPath("resources/textures/pngimg.com - wheat_PNG5.png").c_str());
+    unsigned int transparentTexture = loadTexture(FileSystem::getPath("resources/textures/7b8345dcb7edc00dfd7ad0fcfc150056.png").c_str());
+    shader.use();
+    shader.setInt("texture1", 0);
 
     // load models
     // -----------
@@ -175,33 +225,13 @@ int main() {
 
         // render
         // ------
-        glClearColor(programState->clearColor.r, programState->clearColor.g, programState->clearColor.b, 1.0f);
+        glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 
 
         // don't forget to enable shader before setting uniforms
-//       POKUSAJ JADNE LAMPE
-//
-//
-//        ourShader.use();
-//        ourShader.setVec3("light.position", programState->camera.Position);
-//      //  ourShader.setVec3("light.position", glm::vec3(0.0f,0.0f, 600.0f+50*(sin(glfwGetTime()))));
-//        //ourShader.setVec3("light.direction", glm::vec3(0.0f,0.0f, 1.0f));
-//        ourShader.setVec3("light.direction", programState->camera.Front);
-//        ourShader.setFloat("light.cutOff", glm::cos(glm::radians(12.5f)));
-//        ourShader.setFloat("light.outerCutOff", glm::cos(glm::radians(17.5f)));
-//        ourShader.setVec3("viewPos", programState->camera.Position);
-//
-//        ourShader.setVec3("light.ambient", 0.1f, 0.1f, 0.1f);
-//        // we configure the diffuse intensity slightly higher; the right lighting conditions differ with each lighting method and environment.
-//        // each environment and lighting type requires some tweaking to get the best out of your environment.
-//        ourShader.setVec3("light.diffuse", 0.8f, 0.8f, 0.8f);
-//        ourShader.setVec3("light.specular", 1.0f, 1.0f, 1.0f);
-//        ourShader.setFloat("light.constant", 1.0f);
-//        ourShader.setFloat("light.linear", 0.09f);
-//        ourShader.setFloat("light.quadratic", 0.032f);
-//        ourShader.setFloat("material.shininess", 32.0f);
+
 
 
 
@@ -326,6 +356,26 @@ int main() {
 
 
         glDisable(GL_CULL_FACE);
+        shader.use();
+        glm::mat4 projection1 = glm::perspective(glm::radians(programState->camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
+        glm::mat4 view1 = programState->camera.GetViewMatrix();
+        glm::mat4 model = glm::mat4(1.0f);
+        shader.setMat4("projection", projection);
+        shader.setMat4("view", view);
+
+        glBindVertexArray(transparentVAO);
+        glBindTexture(GL_TEXTURE_2D, transparentTexture);
+        glm::mat4 modeltrava = glm::mat4(1.0f);
+
+        for (unsigned int i = 0; i < vegetation.size(); i++)
+        {
+            modeltrava = glm::mat4(1.0f);
+            modeltrava= glm::translate(modeltrava, vegetation[i]);
+            modeltrava=glm::scale(modeltrava,glm::vec3 (12.0f));
+            modeltrava=glm::rotate(modeltrava,glm::radians(90.0f),glm::vec3(0,1,0));
+            ourShader.setMat4("model", modeltrava);
+            glDrawArrays(GL_TRIANGLES, 0, 6);
+        }
 
         if (programState->ImGuiEnabled)
             DrawImGui(programState);
@@ -425,3 +475,41 @@ void key_callback(GLFWwindow *window, int key, int scancode, int action, int mod
         }
     }
 }
+
+unsigned int loadTexture(char const * path)
+{
+    unsigned int textureID;
+    glGenTextures(1, &textureID);
+
+    int width, height, nrComponents;
+    unsigned char *data = stbi_load(path, &width, &height, &nrComponents, 0);
+    if (data)
+    {
+        GLenum format;
+        if (nrComponents == 1)
+            format = GL_RED;
+        else if (nrComponents == 3)
+            format = GL_RGB;
+        else if (nrComponents == 4)
+            format = GL_RGBA;
+
+        glBindTexture(GL_TEXTURE_2D, textureID);
+        glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, data);
+        glGenerateMipmap(GL_TEXTURE_2D);
+
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, format == GL_RGBA ? GL_CLAMP_TO_EDGE : GL_REPEAT); // for this tutorial: use GL_CLAMP_TO_EDGE to prevent semi-transparent borders. Due to interpolation it takes texels from next repeat
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, format == GL_RGBA ? GL_CLAMP_TO_EDGE : GL_REPEAT);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+        stbi_image_free(data);
+    }
+    else
+    {
+        std::cout << "Texture failed to load at path: " << path << std::endl;
+        stbi_image_free(data);
+    }
+
+    return textureID;
+}
+
