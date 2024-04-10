@@ -32,6 +32,10 @@ const unsigned int SCR_WIDTH = 800;
 const unsigned int SCR_HEIGHT = 600;
 unsigned  int Width = SCR_WIDTH;
 unsigned  int Height = SCR_HEIGHT;
+bool hdr = true;
+bool hdrKeyPressed = false;
+float exposure = 1.0f;
+
 
 // camera
 
@@ -72,6 +76,7 @@ void DrawImGui(ProgramState *programState);
 unsigned int loadTexture(char const * path);
 
 unsigned int loadCubemap(vector<std::string> faces);
+void renderQuad();
 
 
 int main() {
@@ -136,10 +141,36 @@ int main() {
 
     // build and compile shaders
     // -------------------------
-   // Shader ourShader("resources/shaders/5.4.light_casters.vs", "resources/shaders/5.4.light_casters.fs");
+    // Shader ourShader("resources/shaders/5.4.light_casters.vs", "resources/shaders/5.4.light_casters.fs");
     Shader ourShader("resources/shaders/2.model_lighting.vs", "resources/shaders/2.model_lighting.fs");
     Shader shader ("resources/shaders/3.1.blending.vs","resources/shaders/3.1.blending.fs");
     Shader skyboxShader("resources/shaders/6.1.skybox.vs", "resources/shaders/6.1.skybox.fs");
+
+    Shader hdrShader("resources/shaders/6.hdr.vs", "resources/shaders/6.hdr.fs");
+
+    unsigned int hdrFBO;
+    glGenFramebuffers(1, &hdrFBO);
+    // create floating point color buffer
+    unsigned int colorBuffer;
+    glGenTextures(1, &colorBuffer);
+    glBindTexture(GL_TEXTURE_2D, colorBuffer);
+    // mozda scr menja na global
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, SCR_WIDTH, SCR_HEIGHT, 0, GL_RGBA, GL_FLOAT, NULL);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    // create depth buffer (renderbuffer)
+    unsigned int rboDepth;
+    glGenRenderbuffers(1, &rboDepth);
+    glBindRenderbuffer(GL_RENDERBUFFER, rboDepth);
+    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, SCR_WIDTH, SCR_HEIGHT);
+    // attach buffers
+    glBindFramebuffer(GL_FRAMEBUFFER, hdrFBO);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, colorBuffer, 0);
+    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, rboDepth);
+    if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+        std::cout << "Framebuffer not complete!" << std::endl;
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
 
     float skyboxVertices[] = {
             // positions
@@ -197,7 +228,7 @@ int main() {
 
 
 
-        vector<std::string> faces
+    vector<std::string> faces
             {
                     FileSystem::getPath("resources/textures/skybox3/bkg1_right.png"),
                     FileSystem::getPath("resources/textures/skybox3/bkg1_left.png"),
@@ -237,7 +268,7 @@ int main() {
             };
     for(int i=0;i<8;i++){
         for(int j=0;j<5;j++){
-          //  vegetation.push_back(glm::vec3(25.0f-i*7,15.0f,-8.5f-10*j));
+            //  vegetation.push_back(glm::vec3(25.0f-i*7,15.0f,-8.5f-10*j));
             vegetation.push_back(glm::vec3(32.0f-i*7,15.0f,84.5f+10*j));
 
         }
@@ -261,10 +292,10 @@ int main() {
 
     // load models
     // -----------
-   Model platforma("resources/objects/10438_Circular_Grass_Patch_v1_L3.123c72c0e679-bb4b-4162-b0f0-a70f7575d7d8/10438_Circular_Grass_Patch_v1_iterations-2.obj");
-   // Model ourModel("resources/objects/UFO_Saucer_v1_L2.123c50bd261a-1751-44c1-b973-f0dd9e11cecd/13884_UFO_Saucer_v1_l2.obj");
+    Model platforma("resources/objects/10438_Circular_Grass_Patch_v1_L3.123c72c0e679-bb4b-4162-b0f0-a70f7575d7d8/10438_Circular_Grass_Patch_v1_iterations-2.obj");
+    // Model ourModel("resources/objects/UFO_Saucer_v1_L2.123c50bd261a-1751-44c1-b973-f0dd9e11cecd/13884_UFO_Saucer_v1_l2.obj");
     platforma.SetShaderTextureNamePrefix("material.");
-   Model ufo ("resources/objects/UFO_Saucer_v1_L2.123c50bd261a-1751-44c1-b973-f0dd9e11cecd/13884_UFO_Saucer_v1_l2.obj");
+    Model ufo ("resources/objects/UFO_Saucer_v1_L2.123c50bd261a-1751-44c1-b973-f0dd9e11cecd/13884_UFO_Saucer_v1_l2.obj");
     ufo.SetShaderTextureNamePrefix("material.");
     Model krava ("resources/objects/cow/cowTM08New00RTime02.obj");
     krava.SetShaderTextureNamePrefix("material.");
@@ -289,6 +320,9 @@ int main() {
 
     // render loop
     // -----------
+
+    hdrShader.use();
+    hdrShader.setInt("hdrBuffer", 0);
     while (!glfwWindowShouldClose(window)) {
         // per-frame time logic
         // --------------------
@@ -304,6 +338,17 @@ int main() {
         // ------
         glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+
+
+        glBindFramebuffer(GL_FRAMEBUFFER, hdrFBO);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+        // set lighting uniforms
+
+        // render tunnel
+
+
 
 
 
@@ -338,12 +383,12 @@ int main() {
         ourShader.setFloat("material.shininess", 32.0f);
 
 
-      ourShader.setVec3("spotLight.position", glm::vec3(0.0f,61.781075f, 0.0f));
-       ourShader.setVec3("spotLight.direction", glm::vec3(0.0f,-1.0f, 0.0f));
+        ourShader.setVec3("spotLight.position", glm::vec3(0.0f,61.781075f, 0.0f));
+        ourShader.setVec3("spotLight.direction", glm::vec3(0.0f,-1.0f, 0.0f));
         //ourShader.setVec3("spotLight.position", programState->camera.Position);
-       //  ourShader.setVec3("spotLight.direction", programState->camera.Front);
+        //  ourShader.setVec3("spotLight.direction", programState->camera.Front);
         ourShader.setVec3("spotLight.ambient", 0.0f, 10.0f, 0.0f);
-        ourShader.setVec3("spotLight.diffuse", 0.0f, 50.0f, 0.0f);
+        ourShader.setVec3("spotLight.diffuse", 0.0f, 100.0f, 0.0f);
         ourShader.setVec3("spotLight.specular", 0.0f, 10.0f, 0.0f);
         ourShader.setFloat("spotLight.constant", 1.0f);
         ourShader.setFloat("spotLight.linear", 0.09);
@@ -354,7 +399,7 @@ int main() {
         //dir lajt
 
         ourShader.setVec3("dirLight.direction", -0.2f, -1.0f, -0.3f);
-        ourShader.setVec3("dirLight.ambient", 0.2f, 0.2f, 0.2f);
+        ourShader.setVec3("dirLight.ambient", 0.02f, 0.02f, 0.02f);
         ourShader.setVec3("dirLight.diffuse", 0.4f, 0.4f, 0.4f);
         ourShader.setVec3("dirLight.specular", 0.5f, 0.5f, 0.5f);
 
@@ -378,7 +423,7 @@ int main() {
         ourShader.setMat4("model", modelplatforma);
         platforma.Draw(ourShader);
 
-    //ufo
+        //ufo
         glm::mat4 modelufo = glm::mat4(1.0f);
 
         modelufo = glm::scale(modelufo, glm::vec3(0.1));
@@ -386,8 +431,8 @@ int main() {
         modelufo=glm::rotate(modelufo,(float)glfwGetTime(),glm::vec3(0,0,1));
 
 
-      //  modelufo = glm::translate(modelufo,glm::vec3(0.0f,0.0f, 600.0f+50*(sin(glfwGetTime()))));
-      modelufo = glm::translate(modelufo,glm::vec3(0.0f,0.0f, 600.0f));
+        //  modelufo = glm::translate(modelufo,glm::vec3(0.0f,0.0f, 600.0f+50*(sin(glfwGetTime()))));
+        modelufo = glm::translate(modelufo,glm::vec3(0.0f,0.0f, 600.0f));
 
         ourShader.setMat4("model", modelufo);
         ufo.Draw(ourShader);
@@ -423,7 +468,7 @@ int main() {
 
         modelmesec = glm::translate(modelmesec,glm::vec3(-50.0f, 150.0f, -200.0f));
         modelmesec = glm::scale(modelmesec, glm::vec3(25.0f));
-       // modelbarn=glm::rotate(modelbarn,glm::radians(90.0f),glm::vec3(0,1,0));
+        // modelbarn=glm::rotate(modelbarn,glm::radians(90.0f),glm::vec3(0,1,0));
         //modelbarn=glm::rotate(modelbarn,(float)glfwGetTime(),glm::vec3(0,0,1));
         ourShader.setMat4("model", modelmesec);
         mesec.Draw(ourShader);
@@ -455,7 +500,7 @@ int main() {
 
         glEnable(GL_CULL_FACE);
 
-    //SKAJBOX
+        //SKAJBOX
         glDepthFunc(GL_LEQUAL);  // change depth function so depth test passes when values are equal to depth buffer's content
         skyboxShader.use();
         view = glm::mat4(glm::mat3(programState->camera.GetViewMatrix())); // remove translation from the view matrix
@@ -468,8 +513,22 @@ int main() {
         glDrawArrays(GL_TRIANGLES, 0, 36);
         glBindVertexArray(0);
         glDepthFunc(GL_LESS); // set depth function back to default
-        if (programState->ImGuiEnabled)
-            DrawImGui(programState);
+//        if (programState->ImGuiEnabled)
+//            DrawImGui(programState);
+
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        hdrShader.use();
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, colorBuffer);
+        hdrShader.setInt("hdr", hdr);
+        hdrShader.setFloat("exposure", exposure);
+        renderQuad();
+
+        std::cout << "hdr: " << (hdr ? "on" : "off") << "| exposure: " << exposure << std::endl;
+
 
 
         if (programState->ImGuiEnabled)
@@ -510,6 +569,27 @@ void processInput(GLFWwindow *window) {
         programState->camera.ProcessKeyboard(LEFT, deltaTime);
     if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
         programState->camera.ProcessKeyboard(RIGHT, deltaTime);
+    if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS && !hdrKeyPressed)
+    {
+        hdr = !hdr;
+        hdrKeyPressed = true;
+    }
+    if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_RELEASE)
+    {
+        hdrKeyPressed = false;
+    }
+
+    if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS)
+    {
+        if (exposure > 0.0f)
+            exposure -= 0.001f;
+        else
+            exposure = 0.0f;
+    }
+    else if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS)
+    {
+        exposure += 0.001f;
+    }
 }
 
 // glfw: whenever the window size changed (by OS or user resize) this callback function executes
@@ -642,5 +722,31 @@ unsigned int loadCubemap(vector<std::string> faces)
 
     return textureID;
 }
-
-
+unsigned int quadVAO = 0;
+unsigned int quadVBO;
+void renderQuad()
+{
+    if (quadVAO == 0)
+    {
+        float quadVertices[] = {
+                // positions        // texture Coords
+                -1.0f,  1.0f, 0.0f, 0.0f, 1.0f,
+                -1.0f, -1.0f, 0.0f, 0.0f, 0.0f,
+                1.0f,  1.0f, 0.0f, 1.0f, 1.0f,
+                1.0f, -1.0f, 0.0f, 1.0f, 0.0f,
+        };
+        // setup plane VAO
+        glGenVertexArrays(1, &quadVAO);
+        glGenBuffers(1, &quadVBO);
+        glBindVertexArray(quadVAO);
+        glBindBuffer(GL_ARRAY_BUFFER, quadVBO);
+        glBufferData(GL_ARRAY_BUFFER, sizeof(quadVertices), &quadVertices, GL_STATIC_DRAW);
+        glEnableVertexAttribArray(0);
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
+        glEnableVertexAttribArray(1);
+        glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
+    }
+    glBindVertexArray(quadVAO);
+    glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+    glBindVertexArray(0);
+}
