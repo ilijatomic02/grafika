@@ -2,11 +2,10 @@
 layout (location = 0) out vec4 FragColor;
 layout (location = 1) out vec4 BrightColor;
 
-in VS_OUT {
-    vec3 FragPos;
-    vec3 Normal;
-    vec2 TexCoords;
-} fs_in;
+
+in vec2 TexCoords;
+in vec3 Normal;
+in vec3 FragPos;
 
 uniform vec3 lightColor;
 
