@@ -30,8 +30,8 @@ void key_callback(GLFWwindow *window, int key, int scancode, int action, int mod
 // settings
 const unsigned int SCR_WIDTH = 800;
 const unsigned int SCR_HEIGHT = 600;
-unsigned  int width1;
-unsigned  int height1;
+unsigned  int Width = SCR_WIDTH;
+unsigned  int Height = SCR_HEIGHT;
 
 // camera
 
@@ -75,6 +75,7 @@ unsigned int loadCubemap(vector<std::string> faces);
 
 
 int main() {
+
     // glfw: initialize and configure
     // ------------------------------
     glfwInit();
@@ -130,6 +131,8 @@ int main() {
     // configure global opengl state
     // -----------------------------
     glEnable(GL_DEPTH_TEST);
+    glEnable(GL_CULL_FACE);
+
 
     // build and compile shaders
     // -------------------------
@@ -192,15 +195,19 @@ int main() {
     glEnableVertexAttribArray(0);
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
 
+
+
         vector<std::string> faces
             {
-                    FileSystem::getPath("resources/textures/skybox/right.jpg"),
-                    FileSystem::getPath("resources/textures/skybox/left.jpg"),
-                    FileSystem::getPath("resources/textures/skybox/top.jpg"),
-                    FileSystem::getPath("resources/textures/skybox/bottom.jpg"),
-                    FileSystem::getPath("resources/textures/skybox/front.jpg"),
-                    FileSystem::getPath("resources/textures/skybox/back.jpg")
+                    FileSystem::getPath("resources/textures/skybox3/bkg1_right.png"),
+                    FileSystem::getPath("resources/textures/skybox3/bkg1_left.png"),
+                    FileSystem::getPath("resources/textures/skybox3/bkg1_top.png"),
+                    FileSystem::getPath("resources/textures/skybox3/bkg1_bot.png"),
+                    FileSystem::getPath("resources/textures/skybox3/bkg1_front.png"),
+                    FileSystem::getPath("resources/textures/skybox3/bkg1_back.png"),
+
             };
+
 
     unsigned int cubemapTexture = loadCubemap(faces);
 
@@ -355,13 +362,12 @@ int main() {
 
         // view/projection transformations
         glm::mat4 projection = glm::perspective(glm::radians(programState->camera.Zoom),
-                                                (float) SCR_WIDTH / (float) SCR_HEIGHT, 0.1f, 1000.0f);
+                                                (float) Width / (float) Height, 0.1f, 1000.0f);
         glm::mat4 view = programState->camera.GetViewMatrix();
         ourShader.setMat4("projection", projection);
         ourShader.setMat4("view", view);
 
 
-        glEnable(GL_CULL_FACE);
         // platforma
         glm::mat4 modelplatforma = glm::mat4(1.0f);
 
@@ -424,7 +430,6 @@ int main() {
 
 
 
-
         glDisable(GL_CULL_FACE);
         //BILJE
         shader.use();
@@ -447,6 +452,9 @@ int main() {
             ourShader.setMat4("model", modeltrava);
             glDrawArrays(GL_TRIANGLES, 0, 6);
         }
+
+        glEnable(GL_CULL_FACE);
+
     //SKAJBOX
         glDepthFunc(GL_LEQUAL);  // change depth function so depth test passes when values are equal to depth buffer's content
         skyboxShader.use();
@@ -478,7 +486,10 @@ int main() {
     ImGui_ImplGlfw_Shutdown();
     ImGui::DestroyContext();
     glDeleteVertexArrays(1, &skyboxVAO);
-    glDeleteBuffers(1, &skyboxVAO);
+    glDeleteBuffers(1, &skyboxVBO);
+    glDeleteVertexArrays(1, &transparentVAO);
+    glDeleteBuffers(1, &transparentVBO);
+
     // glfw: terminate, clearing all previously allocated GLFW resources.
     // ------------------------------------------------------------------
     glfwTerminate();
@@ -506,8 +517,8 @@ void processInput(GLFWwindow *window) {
 void framebuffer_size_callback(GLFWwindow *window, int width, int height) {
     // make sure the viewport matches the new window dimensions; note that width and
     // height will be significantly larger than specified on retina displays.
-    width1=width;
-    height1=height;
+    Width=width;
+    Height=height;
     glViewport(0, 0, width, height);
 }
 
