@@ -16,7 +16,7 @@
 
 #include <iostream>
 
-
+//funkcije
 void framebuffer_size_callback(GLFWwindow *window, int width, int height);
 
 void mouse_callback(GLFWwindow *window, double xpos, double ypos);
@@ -27,17 +27,31 @@ void processInput(GLFWwindow *window);
 
 void key_callback(GLFWwindow *window, int key, int scancode, int action, int mods);
 
-// settings
-const unsigned int SCR_WIDTH = 800;
-const unsigned int SCR_HEIGHT = 600;
+unsigned int loadTexture(char const * path);
+
+unsigned int loadCubemap(vector<std::string> faces);
+
+void renderQuad();
+
+// osnovna podesavanja globalne
+
+//const unsigned int SCR_WIDTH = 800;
+//const unsigned int SCR_HEIGHT = 600;
+const unsigned int SCR_WIDTH = 1000;
+const unsigned int SCR_HEIGHT = 800;
+
 unsigned  int Width = SCR_WIDTH;
 unsigned  int Height = SCR_HEIGHT;
+
 bool hdr = true;
 bool hdrKeyPressed = false;
 float exposure = 1.0f;
 
+bool bloom = true;
+bool bloomKeyPressed = false;
 
-// camera
+
+// kamera
 
 float lastX = SCR_WIDTH / 2.0f;
 float lastY = SCR_HEIGHT / 2.0f;
@@ -63,8 +77,6 @@ struct ProgramState {
     bool ImGuiEnabled = false;
     Camera camera;
     bool CameraMouseMovementUpdateEnabled = true;
-    glm::vec3 backpackPosition = glm::vec3(0.0f);
-    float backpackScale = 0.05f;
     PointLight pointLight;
     ProgramState()
             : camera(glm::vec3(139.0f, 36.0f, 28.0f)) {}
@@ -73,10 +85,7 @@ struct ProgramState {
 ProgramState *programState;
 
 void DrawImGui(ProgramState *programState);
-unsigned int loadTexture(char const * path);
 
-unsigned int loadCubemap(vector<std::string> faces);
-void renderQuad();
 
 
 int main() {
@@ -94,7 +103,7 @@ int main() {
 
     // glfw window creation
     // --------------------
-    GLFWwindow *window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "LearnOpenGL", NULL, NULL);
+    GLFWwindow *window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "Napad vanzemaljaca", NULL, NULL);
     if (window == NULL) {
         std::cout << "Failed to create GLFW window" << std::endl;
         glfwTerminate();
@@ -115,8 +124,6 @@ int main() {
         return -1;
     }
 
-    // tell stb_image.h to flip loaded texture's on the y-axis (before loading model).
-    //stbi_set_flip_vertically_on_load(true);
 
     programState = new ProgramState;
     if (programState->ImGuiEnabled) {
@@ -141,12 +148,19 @@ int main() {
 
     // build and compile shaders
     // -------------------------
-    // Shader ourShader("resources/shaders/5.4.light_casters.vs", "resources/shaders/5.4.light_casters.fs");
+
     Shader ourShader("resources/shaders/2.model_lighting.vs", "resources/shaders/2.model_lighting.fs");
+
     Shader shader ("resources/shaders/3.1.blending.vs","resources/shaders/3.1.blending.fs");
+
     Shader skyboxShader("resources/shaders/6.1.skybox.vs", "resources/shaders/6.1.skybox.fs");
 
     Shader hdrShader("resources/shaders/6.hdr.vs", "resources/shaders/6.hdr.fs");
+
+    Shader shaderLight("resources/shaders/7.bloom.vs", "resources/shaders/7.light_box.fs");
+    Shader shaderBlur("resources/shaders/7.blur.vs", "resources/shaders/7.blur.fs");
+    Shader shaderBloomFinal("resources/shaders/7.bloom_final.vs", "resources/shaders/7.bloom_final.fs");
+
 
     unsigned int hdrFBO;
     glGenFramebuffers(1, &hdrFBO);
@@ -373,14 +387,12 @@ int main() {
 
         pointLight.position = glm::vec3(4.0 * cos(currentFrame), 4.0f, 4.0 * sin(currentFrame));
         ourShader.setVec3("pointLight[1].position", glm::vec3(-50.0f, 150.0f, -200.0f));
-        ourShader.setVec3("pointLight[1].ambient", glm::vec3(20.0f));
+        ourShader.setVec3("pointLight[1].ambient", glm::vec3(70.0f));
         ourShader.setVec3("pointLight[1].diffuse", pointLight.diffuse);
         ourShader.setVec3("pointLight[1].specular", pointLight.specular);
         ourShader.setFloat("pointLight[1].constant", pointLight.constant);
         ourShader.setFloat("pointLight[1].linear", pointLight.linear);
         ourShader.setFloat("pointLight[1].quadratic", pointLight.quadratic);
-        ourShader.setVec3("viewPosition", programState->camera.Position);
-        ourShader.setFloat("material.shininess", 32.0f);
 
 
         ourShader.setVec3("spotLight.position", glm::vec3(0.0f,61.781075f, 0.0f));
