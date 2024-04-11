@@ -49,6 +49,9 @@ float exposure = 1.0f;
 
 bool bloom = true;
 bool bloomKeyPressed = false;
+unsigned int pingpongColorbuffers[2];
+unsigned int colorBuffers[2];
+unsigned int rboDepth;
 
 
 // kamera
@@ -189,7 +192,7 @@ int main() {
 //        std::cout << "Framebuffer not complete!" << std::endl;
 //    glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-    unsigned int colorBuffers[2];
+
     glGenTextures(2, colorBuffers);
     for (unsigned int i = 0; i < 2; i++)
     {
@@ -203,7 +206,7 @@ int main() {
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + i, GL_TEXTURE_2D, colorBuffers[i], 0);
     }
     // create and attach depth buffer (renderbuffer)
-    unsigned int rboDepth;
+
     glGenRenderbuffers(1, &rboDepth);
     glBindRenderbuffer(GL_RENDERBUFFER, rboDepth);
     glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, SCR_WIDTH, SCR_HEIGHT);
@@ -218,7 +221,7 @@ int main() {
 
     // ping-pong-framebuffer for blurring
     unsigned int pingpongFBO[2];
-    unsigned int pingpongColorbuffers[2];
+
     glGenFramebuffers(2, pingpongFBO);
     glGenTextures(2, pingpongColorbuffers);
     for (unsigned int i = 0; i < 2; i++)
@@ -711,6 +714,21 @@ void framebuffer_size_callback(GLFWwindow *window, int width, int height) {
     // height will be significantly larger than specified on retina displays.
     Width=width;
     Height=height;
+    for(int i=0;i<2;i++){
+
+        glBindTexture(GL_TEXTURE_2D, colorBuffers[i]);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, Width, Height, 0, GL_RGBA, GL_FLOAT, NULL);
+    }
+
+    glBindRenderbuffer(GL_RENDERBUFFER, rboDepth);
+    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, Width, Height);
+
+    for(int i=0;i<2;i++){
+
+        glBindTexture(GL_TEXTURE_2D, pingpongColorbuffers[i]);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, Width, Height, 0, GL_RGBA, GL_FLOAT, NULL);
+    }
+
     glViewport(0, 0, width, height);
 }
 
